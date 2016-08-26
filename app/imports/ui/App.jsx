@@ -2,11 +2,14 @@ import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 import { createContainer } from 'meteor/react-meteor-data';
 
-import { Tasks } from '../api/tasks.js';
-
-import Task from './Task.jsx';
+import { Counties } from '../api/counties.js';
+import { Lsoas } from '../api/lsoas.js';
 
 import Map from './Map.jsx';
+import Menu from './Menu.jsx';
+import AppBar from './AppBarDemand.jsx';
+import ZoomButton from './ZoomButton.jsx';
+import Panel from './Panel.jsx';
  
 // App component - represents the whole app
 class App extends Component {
@@ -14,77 +17,45 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = { 
-      hideCompleted: false,
+      county: false,
     };
   }
- 
-  renderTasks() {
-    let filteredTasks = this.props.tasks;
-    if (this.state.hideCompleted) {
-      filteredTasks = filteredTasks.filter(task => !task.checked);
-    }
-    return filteredTasks.map((task) => (
-      <Task key={task._id} task={task} />
-    ));
-  }
+  
+  zoomToCounty(feature, layer) {
+    /* Some code for updating lsoa database */
+    console.log(this.state);
 
-  handleSubmit(event) {
-    event.preventDefault();
-    const text = ReactDOM.findDOMNode(this.refs.textInput).value.trim();
-    Tasks.insert({
-      text,
-      createdAt: new Date(),
+    layer.on({
+      click: this.setState({county: feature.properties.LAD14CD})
     });
-
-    ReactDOM.findDOMNode(this.refs.textInput).value = '';
+    
   }
 
-  toggleHideCompleted() {
-    this.setState({
-      hideCompleted: !this.state.hideCompleted,
-    });
-  }
  
   render() {
+    let geojson = this.state.county ? this.props.lsoas : this.props.counties;
     return (
-      <div className="container">
-        <header>
-          <h1>Todo List ({this.props.incompleteCount})</h1>
-
-          <label className="hide-completed">
-            <input
-              type="checkbox"
-              readOnly
-              checked={this.state.hideCompleted}
-              onClick={this.toggleHideCompleted.bind(this)}
-            />
-            Hide Completed Tasks
-          </label>
-          <form className="new-task" onSubmit={this.handleSubmit.bind(this)}>
-            <input 
-              type="text"
-              ref="textInput"
-              placeholder="Type to add new tasks"
-            />
-          </form>
-        </header>
-        <Map />
-        <ul>
-          {this.renderTasks()}
-        </ul>
+      <div>
+        <AppBar />
+        <Panel>
+          <Map geojson={geojson} zoomToCounty={this.zoomToCounty}/>
+        </Panel>
+        <Panel>
+          <ZoomButton />
+        </Panel>
       </div>
     );
   }
 }
 
 App.propTypes = {
-  tasks: PropTypes.array.isRequired,
-  incompleteCount: PropTypes.number.isRequired,
+  counties: PropTypes.array.isRequired,
+  lsoas: PropTypes.array.isRequired,
 }
 
 export default createContainer(() => {
   return {
-    tasks: Tasks.find({}, { sort: { createdAt: -1 } }).fetch(),
-    incompleteCount: Tasks.find({ checked: { $ne: true} }).count(),
+    counties: Counties.find({}).fetch(),
+    lsoas: Lsoas.find({}).fetch(),
   };
 }, App);
