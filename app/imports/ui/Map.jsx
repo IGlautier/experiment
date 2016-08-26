@@ -14,7 +14,17 @@ export default class Map extends Component {
     var heat = '#ff' + density.toString(16) + density.toString(16); 
     return {fillColor: heat, color: '#FF0000', weight: 1, opacity: 0.5}
   }
+
+  updateCounty(e) {
+    this.props.zoomToCounty(e.target.feature.properties.id);
+  }
  
+  onEachCounty(feature, layer) {
+    layer.on({
+      click: this.updateCounty.bind(this),
+    });
+  }
+
   componentDidMount() {
     this.state.map = L.map('map', {
         center: [53, -5],
@@ -29,7 +39,7 @@ export default class Map extends Component {
       
     this.state.currentLayer = L.geoJson(this.props.geojson, {
       style: this.getHeat,
-      onEachFeature: this.props.zoomToCounty,
+      onEachFeature: this.onEachCounty.bind(this),
     });
     this.state.map.addLayer(this.state.currentLayer);
   }
@@ -41,7 +51,7 @@ export default class Map extends Component {
     this.state.map.removeLayer(this.state.currentLayer);
     this.state.currentLayer = L.geoJson(this.props.geojson, {
       style: this.getHeat,
-      onEachFeature: this.props.zoomToCounty,
+      onEachFeature: this.onEachCounty.bind(this),
 
     });
     this.state.map.addLayer(this.state.currentLayer);

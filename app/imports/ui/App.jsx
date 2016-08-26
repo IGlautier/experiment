@@ -21,13 +21,9 @@ class App extends Component {
     };
   }
   
-  zoomToCounty(feature, layer) {
-    /* Some code for updating lsoa database */
-    console.log(this.state);
-
-    layer.on({
-      click: this.setState({county: feature.properties.LAD14CD})
-    });
+  zoomToCounty(_county) {
+    console.log("here");
+    this.setState({county: true});
     
   }
 
@@ -38,7 +34,7 @@ class App extends Component {
       <div>
         <AppBar />
         <Panel>
-          <Map geojson={geojson} zoomToCounty={this.zoomToCounty}/>
+          <Map geojson={geojson} zoomToCounty={this.zoomToCounty.bind(this)}/>
         </Panel>
         <Panel>
           <ZoomButton />
